@@ -89,7 +89,7 @@ public class FXMLEncryptionController implements Initializable {
         try {
             this.cipherEncrypt = Cipher.getInstance("PBEWithMD5AndDES");
             this.cipherDecrypt = Cipher.getInstance("PBEWithMD5AndDES");
-            Path pathOutput = Paths.get("OUTPUT.EXT");
+            Path pathOutput = Paths.get("OUTPUT.txt");
             this.file = pathOutput.toFile();
 
             fos = new FileOutputStream(file);
@@ -166,7 +166,7 @@ public class FXMLEncryptionController implements Initializable {
             Logger.getLogger(FXMLEncryptionController.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
             try {
-                out.flush();
+                out.close();
             } catch (IOException ex) {
                 Logger.getLogger(FXMLEncryptionController.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -187,12 +187,12 @@ public class FXMLEncryptionController implements Initializable {
 
     private void decrypt() throws InvalidKeySpecException, NoSuchAlgorithmException {
 
+        PBEParameterSpec pbeParameterSpec = new PBEParameterSpec(saltBytes, count);
         PBEKeySpec pbeKeySpec = new PBEKeySpec(passwordInput.toCharArray());
         SecretKeyFactory keyFac = SecretKeyFactory.getInstance("PBEWithMD5AndDES");
         SecretKey pbeKey = keyFac.generateSecret(pbeKeySpec);
-        IvParameterSpec iv = new IvParameterSpec(pbeKey.getEncoded());
         try {
-            cipherDecrypt.init(Cipher.DECRYPT_MODE, pbeKey, iv);
+            cipherDecrypt.init(Cipher.DECRYPT_MODE, pbeKey, pbeParameterSpec);
 
             String textDecrypted = this.readFromFile();
             taMessage.setText("This message was decrypted: \n\n" + textDecrypted);
